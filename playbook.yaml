@@ -1,0 +1,22 @@
+- name: Deploy Jenkins to Kubernetes
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - kubernetes.core
+
+  tasks:
+
+    - name: Create Jenkins PVC and PV
+      kubernetes.core.k8s:
+        state: present
+        src: manifests/jenkins-pvc.yaml
+
+    - name: Deploy Jenkins Pod
+      kubernetes.core.k8s:
+        state: present
+        src: manifests/jenkins-pod.yaml
+
+    - name: Create Jenkins Service
+      kubernetes.core.k8s:
+        state: present
+        src: manifests/jenkins-service.yaml
