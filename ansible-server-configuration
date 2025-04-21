@@ -1,0 +1,50 @@
+ you can run Ansible from a separate Ansible server to manage your Kubernetes cluster. It’s actually a common setup in production environments. Here's how it works and what you need:
+
+[ Ansible Control Node (Ansible Server) ]
+        |
+        |  SSH / API
+        |
+[ Kubernetes Cluster ]
+
+The Ansible server doesn't need to be part of the cluster. It just needs:
+
+Network access to the cluster’s API
+
+kubectl configured
+
+Ansible collections installed (e.g. kubernetes.core)
+
+The correct kubeconfig file for access
+
+# Setup Steps on the Ansible Server
+
+1. Install Prerequisites
+sudo apt update && sudo apt install -y python3-pip
+pip3 install openshift kubernetes
+ansible-galaxy collection install kubernetes.core
+
+2. Install kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+
+3. Configure kubeconfig
+Place the kubeconfig from your Kubernetes cluster onto the Ansible server at ~/.kube/config, or reference it explicitly in your playbook like this:
+###############################################
+  vars:
+    kubeconfig_path: "/home/ansible/.kube/config"
+
+  tasks:
+    - name: Apply Jenkins Pod
+      kubernetes.core.k8s:
+        state: present
+        src: manifests/jenkins-pod.yaml
+        kubeconfig: "{{ kubeconfig_path }}"
+###############################################
+
+Test Connectivity
+kubectl --kubeconfig ~/.kube/config get nodes
+If this works, your Ansible server can reach the cluster.
+
+
+
